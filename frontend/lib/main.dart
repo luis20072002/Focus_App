@@ -3,15 +3,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'core/constants/app_colors.dart';
 import 'providers/auth_provider.dart';
 import 'providers/task_provider.dart';
+import 'providers/user_provider.dart';
+import 'providers/follow_provider.dart';
+import 'providers/settings_provider.dart';
+import 'providers/template_provider.dart';
+import 'providers/notification_provider.dart';
+import 'providers/ranking_provider.dart';
+import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/welcome_screen.dart';
-import 'screens/auth/forgot_password_screen.dart';
+//import 'screens/auth/forgot_password_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'screens/tasks/create_task_screen.dart';
+// import 'screens/tasks/create_task_screen.dart';
 import 'screens/tasks/task_detail_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
@@ -24,6 +30,12 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuth()),
         ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => FollowProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => TemplateProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => RankingProvider()),
       ],
       child: const MyApp(),
     ),
@@ -52,75 +64,48 @@ class _MyAppState extends State<MyApp> {
         final status = authProvider.status;
         if (status == AuthStatus.checking) return null;
         final isAuth = status == AuthStatus.authenticated;
-        final isAuthRoute = state.matchedLocation == '/login'     ||
-                            state.matchedLocation == '/register'  ||
-                            state.matchedLocation == '/welcome'   ||
+        final isAuthRoute = state.matchedLocation == '/login'            ||
+                            state.matchedLocation == '/register'         ||
+                            state.matchedLocation == '/welcome'          ||
                             state.matchedLocation == '/forgot-password';
         if (!isAuth && !isAuthRoute) return '/welcome';
-        if (isAuth && isAuthRoute)   return '/home';
-        if (isAuth && state.matchedLocation == '/') return '/home';
+        if (isAuth  && isAuthRoute)  return '/home';
+        if (isAuth  && state.matchedLocation == '/') return '/home';
         return null;
       },
       routes: [
-        GoRoute(path: '/',                 builder: (_, _) => const SplashScreen()),
-        GoRoute(path: '/welcome',          builder: (_, _) => const WelcomeScreen()),
-        GoRoute(path: '/login',            builder: (_, _) => const LoginScreen()),
-        GoRoute(path: '/register',         builder: (_, _) => const RegisterScreen()),
-        GoRoute(path: '/forgot-password',  builder: (_, _) => const ForgotPasswordScreen()),
-        GoRoute(path: '/home',             builder: (_, _) => const HomeScreen()),
-        GoRoute(path: '/create-task',      builder: (_, _) => const CreateTaskScreen()),
+        GoRoute(path: '/',                builder: (_, _) => const SplashScreen()),
+        GoRoute(path: '/welcome',         builder: (_, _) => const WelcomeScreen()),
+        GoRoute(path: '/login',           builder: (_, _) => const LoginScreen()),
+        GoRoute(path: '/register',        builder: (_, _) => const RegisterScreen()),
+        // GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordScreen()),
+        GoRoute(path: '/home',            builder: (_, _) => const HomeScreen()),
+        // GoRoute(path: '/create-task',     builder: (_, _) => const CreateTaskScreen()),
         GoRoute(
           path: '/task/:id',
           builder: (_, state) => TaskDetailScreen(
             taskId: int.parse(state.pathParameters['id']!),
           ),
         ),
-        GoRoute(path: '/profile',          builder: (_, _) => const ProfileScreen()),
+        GoRoute(path: '/profile',         builder: (_, _) => const ProfileScreen()),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Escucha el SettingsProvider para cambiar el tema reactivamente
+    final isDark = context.select<SettingsProvider, bool>(
+      (s) => s.isDarkTheme,
+    );
+
     return MaterialApp.router(
-      title: 'Focus App',
+      title:                    'Focus App',
       debugShowCheckedModeBanner: false,
-      routerConfig: _router,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: const ColorScheme.light(
-          primary:   AppColors.midnight,
-          secondary: AppColors.blueberry,
-          surface:   AppColors.surface,
-          error:     AppColors.error,
-        ),
-        fontFamily: 'sans-serif',
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.midnight, width: 1.5),
-          ),
-          labelStyle: const TextStyle(color: AppColors.grisTexto),
-          hintStyle:  const TextStyle(color: AppColors.grisTexto),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.midnight,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ),
-      ),
+      routerConfig:             _router,
+      theme:                    AppTheme.light,
+      darkTheme:                AppTheme.dark,
+      themeMode:                isDark ? ThemeMode.dark : ThemeMode.light,
     );
   }
 }
@@ -131,9 +116,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(color: AppColors.naranja),
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

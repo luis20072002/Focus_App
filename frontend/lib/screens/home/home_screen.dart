@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import 'widgets/task_card.dart';
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen>
             _buildHomeTab(user, taskProv),
 
             // ── Calendario ───────────────────────────────────────────────
-            const CalendarBody(),
+            //const CalendarBody(),
 
             // ── Perfil ───────────────────────────────────────────────────
             _ProfileTab(

@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 import '../models/task.dart';
 import '../services/task_service.dart';
 
 class TaskProvider extends ChangeNotifier {
-  List<Task> _todayTasks = [];
-  List<Task> _allTasks   = [];
-  bool       _loading    = false;
-  bool       _loadingAll = false;
+  List<Task> _todayTasks    = [];
+  List<Task> _calendarTasks = [];
+  bool       _loading       = false;
+  bool       _loadingAll    = false;
   String?    _error;
 
-  List<Task> get todayTasks => _todayTasks;
-  List<Task> get allTasks   => _allTasks;
-  bool       get loading    => _loading;
-  bool       get loadingAll => _loadingAll;
-  String?    get error      => _error;
+  List<Task> get todayTasks    => _todayTasks;
+  List<Task> get calendarTasks => _calendarTasks;
+  bool       get loading       => _loading;
+  bool       get loadingAll    => _loadingAll;
+  String?    get error         => _error;
 
-  // Tareas agrupadas por día (año-mes-día) para el calendario
+  // ── Helpers de calendario ─────────────────────────────────────────────────
+
   Map<String, List<Task>> get tasksByDate {
     final map = <String, List<Task>>{};
-    for (final task in _allTasks) {
+    for (final task in _calendarTasks) {
       try {
         final dt  = DateTime.parse(task.scheduledDate);
         final key = '${dt.year}-${dt.month}-${dt.day}';
@@ -28,10 +30,9 @@ class TaskProvider extends ChangeNotifier {
     return map;
   }
 
-  // Días completados del mes (todos sus tareas están realizadas)
   Set<int> completedDaysInMonth(int year, int month) {
     final byDay = <int, List<Task>>{};
-    for (final task in _allTasks) {
+    for (final task in _calendarTasks) {
       try {
         final dt = DateTime.parse(task.scheduledDate);
         if (dt.year == year && dt.month == month) {
@@ -41,18 +42,16 @@ class TaskProvider extends ChangeNotifier {
     }
     final result = <int>{};
     byDay.forEach((day, tasks) {
-      final past = tasks.every((t) =>
-          DateTime.parse(t.scheduledDate).isBefore(DateTime.now()));
+      final past    = tasks.every((t) => DateTime.parse(t.scheduledDate).isBefore(DateTime.now()));
       final allDone = tasks.every((t) => t.isDone);
       if (past && allDone) result.add(day);
     });
     return result;
   }
 
-  // Días fallidos del mes (pasaron y al menos una tarea está vencida)
   Set<int> failedDaysInMonth(int year, int month) {
     final byDay = <int, List<Task>>{};
-    for (final task in _allTasks) {
+    for (final task in _calendarTasks) {
       try {
         final dt = DateTime.parse(task.scheduledDate);
         if (dt.year == year && dt.month == month) {
@@ -65,20 +64,19 @@ class TaskProvider extends ChangeNotifier {
       final hasExpired = tasks.any((t) => t.isExpired);
       final notAllDone = !tasks.every((t) => t.isDone);
       if (hasExpired || notAllDone) {
-        final allPast = tasks.every((t) =>
-            DateTime.parse(t.scheduledDate).isBefore(DateTime.now()));
+        final allPast = tasks.every(
+          (t) => DateTime.parse(t.scheduledDate).isBefore(DateTime.now()),
+        );
         if (allPast) result.add(day);
       }
     });
-    // Quitar los que ya están en completados
     return result..removeAll(completedDaysInMonth(year, month));
   }
 
-  // Días con tareas futuras programadas
   Set<int> scheduledDaysInMonth(int year, int month) {
-    final now = DateTime.now();
+    final now    = DateTime.now();
     final result = <int>{};
-    for (final task in _allTasks) {
+    for (final task in _calendarTasks) {
       try {
         final dt = DateTime.parse(task.scheduledDate);
         if (dt.year == year && dt.month == month && dt.isAfter(now)) {
@@ -89,31 +87,39 @@ class TaskProvider extends ChangeNotifier {
     return result;
   }
 
-  // Tareas de un día concreto como lista de Map para los tiles del calendario
   List<Map<String, dynamic>> tasksForDay(int year, int month, int day) {
-    final key = '$year-$month-$day';
+    final key   = '$year-$month-$day';
     final tasks = tasksByDate[key] ?? [];
     return tasks.map((t) {
       DateTime dt;
-      try { dt = DateTime.parse(t.scheduledDate); } catch (_) { dt = DateTime.now(); }
+      try {
+        dt = DateTime.parse(t.scheduledDate);
+      } catch (_) {
+        dt = DateTime.now();
+      }
       final h = dt.hour.toString().padLeft(2, '0');
       final m = dt.minute.toString().padLeft(2, '0');
 
-      // Color por estado
-      int color;
-      if (t.isDone)        color = 0xFF5A4EDB; // blueberry
-      else if (t.isExpired) color = 0xFFCF6679; // error
-      else                  color = 0xFFBCBBF2; // lightBlue
+      final int color;
+      if (t.isDone) {
+        color = AppColors.blueberry.value;
+      } else if (t.isExpired) {
+        color = AppColors.error.value;
+      } else {
+        color = AppColors.lightBlue.value;
+      }
 
       return {
         'name':   t.name,
         'time':   '$h:$m',
         'done':   t.isDone,
-        'foints': t.idTaskTemplate != null,
+        'foints': t.showFointsBadge,
         'color':  color,
       };
     }).toList();
   }
+
+  // ── Carga de tareas ───────────────────────────────────────────────────────
 
   Future<void> loadTodayTasks() async {
     _loading = true;
@@ -128,12 +134,14 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadAllTasks() async {
+  Future<void> loadCalendarTasks({required int year, required int month}) async {
     _loadingAll = true;
     _error      = null;
     notifyListeners();
     try {
-      _allTasks = await TaskService.getAllTasks();
+      _calendarTasks = await TaskService.getCalendarTasks(
+        year: year, month: month,
+      );
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
     }
@@ -141,12 +149,15 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Crear tarea ───────────────────────────────────────────────────────────
+
   Future<bool> createTask({
     required String name,
     String? description,
     required bool isUrgent,
     required String scheduledDate,
     required String notificationType,
+    required bool isFointCandidate,
     bool isRecurrent = false,
     String recurrenceType = 'ninguna',
     String? recurrenceDays,
@@ -161,6 +172,7 @@ class TaskProvider extends ChangeNotifier {
         isUrgent:          isUrgent,
         scheduledDate:     scheduledDate,
         notificationType:  notificationType,
+        isFointCandidate:  isFointCandidate,
         isRecurrent:       isRecurrent,
         recurrenceType:    recurrenceType,
         recurrenceDays:    recurrenceDays,
@@ -168,7 +180,6 @@ class TaskProvider extends ChangeNotifier {
         idTaskTemplate:    idTaskTemplate,
       );
       _todayTasks.add(newTask);
-      _allTasks.add(newTask);
       notifyListeners();
       return true;
     } catch (e) {
@@ -178,14 +189,13 @@ class TaskProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> markAsDone(int taskId) async {
+  // ── Editar tarea ──────────────────────────────────────────────────────────
+
+  Future<bool> updateTask(int taskId, Map<String, dynamic> fields) async {
     _error = null;
     try {
-      final updated = await TaskService.updateTaskStatus(taskId, 'realizada');
-      final todayIdx = _todayTasks.indexWhere((t) => t.idTask == taskId);
-      if (todayIdx != -1) _todayTasks[todayIdx] = updated;
-      final allIdx = _allTasks.indexWhere((t) => t.idTask == taskId);
-      if (allIdx != -1) _allTasks[allIdx] = updated;
+      final updated = await TaskService.updateTask(taskId, fields);
+      _updateTaskInLists(taskId, updated);
       notifyListeners();
       return true;
     } catch (e) {
@@ -194,19 +204,60 @@ class TaskProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  // ── Marcar como realizada ─────────────────────────────────────────────────
+
+  Future<bool> markAsDone(int taskId) async {
+    _error = null;
+    try {
+      final updated = await TaskService.completeTask(taskId);
+      _updateTaskInLists(taskId, updated);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ── Eliminar tarea ────────────────────────────────────────────────────────
 
   Future<bool> deleteTask(int taskId) async {
     _error = null;
     try {
       await TaskService.deleteTask(taskId);
       _todayTasks.removeWhere((t) => t.idTask == taskId);
-      _allTasks.removeWhere((t) => t.idTask == taskId);
+      _calendarTasks.removeWhere((t) => t.idTask == taskId);
       notifyListeners();
       return true;
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
+    }
+  }
+
+  // ── Limpia el estado (cerrar sesión) ──────────────────────────────────────
+
+  void clear() {
+    _todayTasks    = [];
+    _calendarTasks = [];
+    _error         = null;
+    notifyListeners();
+  }
+
+  // ── Utilidad interna ──────────────────────────────────────────────────────
+
+  void _updateTaskInLists(int taskId, Task updated) {
+    final todayIdx = _todayTasks.indexWhere((t) => t.idTask == taskId);
+    if (todayIdx != -1) {
+      _todayTasks[todayIdx] = updated;
+    }
+
+    final calIdx = _calendarTasks.indexWhere((t) => t.idTask == taskId);
+    if (calIdx != -1) {
+      _calendarTasks[calIdx] = updated;
     }
   }
 }

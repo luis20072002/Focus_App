@@ -13,21 +13,10 @@ class TaskService {
     };
   }
 
+  // ── GET /tasks — Tareas del día actual ────────────────────────────────────
+  // FIX: eliminado tasksToday (/tasks/today no existe en el backend).
+  // El endpoint correcto es GET /tasks sin sufijo.
   static Future<List<Task>> getTodayTasks() async {
-    final response = await http.get(
-      Uri.parse(ApiConstants.tasksToday),
-      headers: await _headers(),
-    );
-
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => Task.fromJson(e)).toList();
-    } else {
-      throw Exception('Error al obtener las tareas del dia');
-    }
-  }
-
-  static Future<List<Task>> getAllTasks() async {
     final response = await http.get(
       Uri.parse(ApiConstants.tasks),
       headers: await _headers(),
@@ -37,16 +26,45 @@ class TaskService {
       final List data = jsonDecode(response.body);
       return data.map((e) => Task.fromJson(e)).toList();
     } else {
-      throw Exception('Error al obtener las tareas');
+      throw Exception('Error al obtener las tareas del día');
     }
   }
 
+  // ── GET /tasks/calendar — Todas las tareas de un mes ─────────────────────
+  // FIX: reemplaza getAllTasks() que llamaba a /tasks/ y solo devolvía
+  // las tareas de hoy. Este endpoint devuelve todas las del mes indicado,
+  // incluyendo instancias virtuales de tareas recurrentes.
+  static Future<List<Task>> getCalendarTasks({
+    required int year,
+    required int month,
+  }) async {
+    final uri = Uri.parse(ApiConstants.tasksCalendar).replace(
+      queryParameters: {
+        'year':  '$year',
+        'month': '$month',
+      },
+    );
+
+    final response = await http.get(uri, headers: await _headers());
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Task.fromJson(e)).toList();
+    } else {
+      throw Exception('Error al obtener las tareas del calendario');
+    }
+  }
+
+  // ── POST /tasks — Crear tarea ─────────────────────────────────────────────
+  // FIX: agregado isFointCandidate al payload.
+  // El backend lo requiere para activar el sistema de Foints.
   static Future<Task> createTask({
     required String name,
     String? description,
     required bool isUrgent,
     required String scheduledDate,
     required String notificationType,
+    required bool isFointCandidate,
     bool isRecurrent = false,
     String recurrenceType = 'ninguna',
     String? recurrenceDays,
@@ -59,7 +77,7 @@ class TaskService {
       'is_urgent':           isUrgent,
       'scheduled_date':      scheduledDate,
       'notification_type':   notificationType,
-      'status':              'pendiente',
+      'is_foint_candidate':  isFointCandidate,
       'is_recurrent':        isRecurrent,
       'recurrence_type':     recurrenceType,
       'recurrence_days':     recurrenceDays,
@@ -81,28 +99,51 @@ class TaskService {
     }
   }
 
-  static Future<Task> updateTaskStatus(int taskId, String newStatus) async {
-    final response = await http.put(
-      Uri.parse('${ApiConstants.baseUrl}/tasks/$taskId'),
+  // ── PATCH /tasks/{id} — Editar tarea ─────────────────────────────────────
+  // Solo envía los campos que cambian (edición parcial).
+  static Future<Task> updateTask(int taskId, Map<String, dynamic> fields) async {
+    final response = await http.patch(
+      Uri.parse(ApiConstants.taskById(taskId)),
       headers: await _headers(),
-      body: jsonEncode({'status': newStatus}),
+      body: jsonEncode(fields),
     );
 
     if (response.statusCode == 200) {
       return Task.fromJson(jsonDecode(response.body));
     } else {
       final data = jsonDecode(response.body);
-      throw Exception(data['detail'] ?? 'Error al actualizar la tarea');
+      throw Exception(data['detail'] ?? 'Error al editar la tarea');
     }
   }
 
-  static Future<void> deleteTask(int taskId) async {
-    final response = await http.delete(
-      Uri.parse('${ApiConstants.baseUrl}/tasks/$taskId'),
+  // ── POST /tasks/{id}/complete — Marcar como realizada ────────────────────
+  // FIX: reemplaza updateTaskStatus() que usaba PUT /tasks/{id} con
+  // {status: 'realizada'}, endpoint incorrecto que nunca acreditaba Foints.
+  // Este es el único endpoint que activa el algoritmo de Foints en el backend.
+  static Future<Task> completeTask(int taskId) async {
+    final response = await http.post(
+      Uri.parse(ApiConstants.taskComplete(taskId)),
       headers: await _headers(),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      return Task.fromJson(jsonDecode(response.body));
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['detail'] ?? 'Error al completar la tarea');
+    }
+  }
+
+  // ── DELETE /tasks/{id} — Eliminar tarea ──────────────────────────────────
+  // FIX: el backend devuelve 204 No Content al eliminar correctamente,
+  // no 200. Se corrige la validación del status code.
+  static Future<void> deleteTask(int taskId) async {
+    final response = await http.delete(
+      Uri.parse(ApiConstants.taskById(taskId)),
+      headers: await _headers(),
+    );
+
+    if (response.statusCode != 204) {
       final data = jsonDecode(response.body);
       throw Exception(data['detail'] ?? 'Error al eliminar la tarea');
     }
