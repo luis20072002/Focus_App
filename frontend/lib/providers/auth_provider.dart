@@ -3,6 +3,7 @@ import '../models/users.dart';
 import '../services/auth_service.dart';
 import '../core/utils/token_storage.dart';
 
+
 enum AuthStatus { checking, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {

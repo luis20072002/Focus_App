@@ -84,13 +84,8 @@ class _LoginScreenState extends State<LoginScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            auth.error ?? 'Error al iniciar sesión',
-            style: GoogleFonts.nunito(color: Colors.white),
-          ),
-          backgroundColor: AppColors.error,
+          content: Text(auth.error ?? 'Error al iniciar sesión'),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.all(16),
         ),
       );
@@ -99,10 +94,12 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size   = MediaQuery.of(context).size;
+    final theme  = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.surface,
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: Column(
@@ -110,10 +107,11 @@ class _LoginScreenState extends State<LoginScreen>
             // ── Header ──────────────────────────────────────────────
             _Header(
               height: size.height * 0.30,
-              onBack: () => context.go('/welcome'),
             ),
 
             // ── Formulario ──────────────────────────────────────────
+            // Una sola animación de entrada al contenedor — sin stagger
+            // por campo, que era la causa del lag perceptible.
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
               child: Form(
@@ -121,39 +119,25 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Titulo
+                    // Título
                     Text(
                       'Bienvenido',
-                      style: GoogleFonts.nunito(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.midnight,
-                        letterSpacing: -0.5,
-                      ),
-                    ).animate().fadeIn(duration: 350.ms).slideY(
-                          begin: 0.15,
-                          end: 0,
-                          duration: 350.ms,
-                          curve: Curves.easeOut,
-                        ),
+                      style: theme.textTheme.headlineMedium,
+                    ),
 
                     const SizedBox(height: 4),
 
                     Text(
                       'Inicia sesión para continuar',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.grisTexto,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ).animate().fadeIn(delay: 80.ms, duration: 350.ms),
+                    ),
 
                     const SizedBox(height: 28),
 
                     // Campo identificador
-                    _FieldLabel(text: 'Correo, teléfono o usuario')
-                        .animate()
-                        .fadeIn(delay: 120.ms, duration: 300.ms),
+                    _FieldLabel(text: 'Correo, teléfono o usuario'),
 
                     const SizedBox(height: 8),
 
@@ -167,14 +151,12 @@ class _LoginScreenState extends State<LoginScreen>
                       validator: (v) => v == null || v.trim().isEmpty
                           ? 'Este campo es obligatorio'
                           : null,
-                    ).animate().fadeIn(delay: 160.ms, duration: 300.ms),
+                    ),
 
                     const SizedBox(height: 18),
 
                     // Campo contraseña
-                    _FieldLabel(text: 'Contraseña')
-                        .animate()
-                        .fadeIn(delay: 200.ms, duration: 300.ms),
+                    _FieldLabel(text: 'Contraseña'),
 
                     const SizedBox(height: 8),
 
@@ -194,88 +176,75 @@ class _LoginScreenState extends State<LoginScreen>
                         animation: _eyeAnimation,
                         onTap: _toggleObscure,
                       ),
-                    ).animate().fadeIn(delay: 240.ms, duration: 300.ms),
+                    ),
 
                     // Olvidaste contraseña
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => context.go('/forgot-password'),
+                        onPressed: () => context.push('/forgot-password'),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 8),
+                            horizontal: 4, vertical: 8,
+                          ),
                         ),
                         child: Text(
                           '¿Olvidaste tu contraseña?',
-                          style: GoogleFonts.nunito(
-                            color: AppColors.blueberry,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 13,
                           ),
                         ),
                       ),
-                    ).animate().fadeIn(delay: 280.ms, duration: 300.ms),
+                    ),
 
                     const SizedBox(height: 4),
 
                     // Botón login
                     _loading
                         ? const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.midnight,
-                              strokeWidth: 2.5,
-                            ),
+                            child: CircularProgressIndicator(),
                           )
                         : SizedBox(
                             width: double.infinity,
                             height: 54,
                             child: ElevatedButton(
                               onPressed: _submit,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.midnight,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
                               child: Text(
                                 'Iniciar sesión',
-                                style: GoogleFonts.nunito(
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: Colors.white,
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
-                          ).animate().fadeIn(delay: 320.ms, duration: 300.ms),
+                          ),
 
                     const SizedBox(height: 24),
 
-                    // Ir a registro
+                    // Ir a registro — push para apilar sobre Login
                     Center(
                       child: GestureDetector(
                         onTap: () => context.go('/register'),
                         child: Text.rich(
                           TextSpan(
                             text: '¿No tienes cuenta? ',
-                            style: GoogleFonts.nunito(
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.grisTexto,
-                              fontSize: 14,
                             ),
                             children: [
                               TextSpan(
                                 text: 'Regístrate',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.midnight,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colors.primary,
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 14,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ).animate().fadeIn(delay: 360.ms, duration: 300.ms),
+                    ),
 
                     const SizedBox(height: 32),
                   ],
@@ -293,8 +262,7 @@ class _LoginScreenState extends State<LoginScreen>
 
 class _Header extends StatelessWidget {
   final double height;
-  final VoidCallback onBack;
-  const _Header({required this.height, required this.onBack});
+  const _Header({required this.height});
 
   @override
   Widget build(BuildContext context) {
@@ -319,11 +287,9 @@ class _Header extends StatelessWidget {
 
           // Círculos decorativos
           Positioned(
-            top: -20,
-            right: -30,
+            top: -20, right: -30,
             child: Container(
-              width: 130,
-              height: 130,
+              width: 130, height: 130,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(0.06),
@@ -331,11 +297,9 @@ class _Header extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 28,
-            right: 55,
+            top: 28, right: 55,
             child: Container(
-              width: 60,
-              height: 60,
+              width: 60, height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.gum.withOpacity(0.22),
@@ -343,26 +307,13 @@ class _Header extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 36,
-            left: -18,
+            bottom: 36, left: -18,
             child: Container(
-              width: 90,
-              height: 90,
+              width: 90, height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.lightBlue.withOpacity(0.12),
               ),
-            ),
-          ),
-
-          // Botón de regreso
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 8,
-            child: IconButton(
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white, size: 20),
             ),
           ),
 
@@ -373,8 +324,7 @@ class _Header extends StatelessWidget {
               children: [
                 const SizedBox(height: 16),
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 64, height: 64,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(18),
@@ -385,15 +335,14 @@ class _Header extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.bolt_rounded,
-                    color: Colors.white,
-                    size: 36,
+                    color: Colors.white, size: 36,
                   ),
                 ).animate().scale(
-                      begin: const Offset(0.6, 0.6),
-                      end: const Offset(1, 1),
-                      duration: 500.ms,
-                      curve: Curves.elasticOut,
-                    ),
+                  begin: const Offset(0.6, 0.6),
+                  end: const Offset(1, 1),
+                  duration: 500.ms,
+                  curve: Curves.elasticOut,
+                ),
                 const SizedBox(height: 10),
                 Text(
                   'Focus App',
@@ -463,19 +412,21 @@ class _AnimatedField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isFocused ? AppColors.blueberry : Colors.transparent,
+          color: isFocused ? colors.primary : Colors.transparent,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isFocused
-                ? AppColors.blueberry.withOpacity(0.12)
+                ? colors.primary.withOpacity(0.12)
                 : Colors.black.withOpacity(0.04),
             blurRadius: isFocused ? 10 : 6,
             offset: const Offset(0, 2),
@@ -487,20 +438,14 @@ class _AnimatedField extends StatelessWidget {
         focusNode: focusNode,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: GoogleFonts.nunito(
-          color: AppColors.midnight,
-          fontSize: 15,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w600,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: GoogleFonts.nunito(
-            color: AppColors.grisTexto.withOpacity(0.5),
-            fontSize: 15,
-          ),
           prefixIcon: Icon(
             prefixIcon,
-            color: isFocused ? AppColors.blueberry : AppColors.grisTexto,
+            color: isFocused ? colors.primary : AppColors.grisTexto,
             size: 20,
           ),
           suffixIcon: suffix,
@@ -511,12 +456,7 @@ class _AnimatedField extends StatelessWidget {
           errorBorder: InputBorder.none,
           focusedErrorBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-          errorStyle: GoogleFonts.nunito(
-            color: AppColors.error,
-            fontSize: 12,
+            horizontal: 16, vertical: 16,
           ),
         ),
         validator: validator,
@@ -535,11 +475,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: GoogleFonts.nunito(
-        color: AppColors.midnight,
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-      ),
+      style: Theme.of(context).textTheme.labelLarge,
     );
   }
 }
@@ -554,22 +490,24 @@ class _EyeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: AnimatedBuilder(
           animation: animation,
-          builder: (_, _) => Stack(
+          builder: (_, __) => Stack(
             alignment: Alignment.center,
             children: [
               Opacity(
                 opacity: animation.value,
                 child: Transform.scale(
                   scale: 0.85 + (animation.value * 0.15),
-                  child: const Icon(
+                  child: Icon(
                     Icons.visibility_outlined,
-                    color: AppColors.blueberry,
+                    color: colors.primary,
                     size: 21,
                   ),
                 ),

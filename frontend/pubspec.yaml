@@ -37,11 +37,15 @@ dependencies:
   #env
   flutter_dotenv: ^5.2.1
 
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1
 
 flutter:
   uses-material-design: true
@@ -49,3 +53,22 @@ flutter:
   assets:
     - assets/animations/
     - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"  # tu imagen, mínimo 1024x1024px, fondo no transparente
+  web:
+    generate: true
+    image_path: "assets/icons/app_icon.png"
+
+flutter_native_splash:
+  color: "#F4F3FF"           # color de fondo — usa tu AppColors.midnight
+  image: "assets/icons/appsmash.png"
+  android_12:
+    image: "assets/icons/appsmash.png"
+    color: "#F4F3FF"
+  web: true
+
+
+

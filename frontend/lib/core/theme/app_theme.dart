@@ -30,7 +30,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3:            true,
       colorScheme:             colorScheme,
-      fontFamily:              'Inter',
+      fontFamily:              'Nunito',
       scaffoldBackgroundColor: AppColors.background,
 
       // ── AppBar ────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle:            false,
         titleTextStyle: TextStyle(
-          fontFamily:    'Inter',
+          fontFamily:    'Nunito',
           fontSize:      18,
           fontWeight:    FontWeight.w700,
           color:         AppColors.textPrimary,
@@ -64,8 +64,8 @@ class AppTheme {
         showUnselectedLabels: true,
         type:                 BottomNavigationBarType.fixed,
         elevation:            8,
-        selectedLabelStyle:   TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w400),
+        selectedLabelStyle:   TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w400),
       ),
 
       // ── Card ──────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 15, fontWeight: FontWeight.w600,
             letterSpacing: 0.1,
           ),
         ),
@@ -105,7 +105,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 15, fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -117,7 +117,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -147,9 +147,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide:   const BorderSide(color: AppColors.gum, width: 2),
         ),
-        labelStyle:      const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.grisTexto),
-        hintStyle:       const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.grisTexto),
-        errorStyle:      const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.gum),
+        labelStyle:      const TextStyle(fontFamily: 'Nunito', fontSize: 14, color: AppColors.grisTexto),
+        hintStyle:       const TextStyle(fontFamily: 'Nunito', fontSize: 14, color: AppColors.grisTexto),
+        errorStyle:      const TextStyle(fontFamily: 'Nunito', fontSize: 12, color: AppColors.gum),
         prefixIconColor: AppColors.grisTexto,
         suffixIconColor: AppColors.grisTexto,
       ),
@@ -160,11 +160,11 @@ class AppTheme {
         selectedColor:      AppColors.blueberry,
         disabledColor:      AppColors.lightBlue,
         labelStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w500,
+          fontFamily: 'Nunito', fontSize: 13, fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
         secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w500,
+          fontFamily: 'Nunito', fontSize: 13, fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -205,7 +205,7 @@ class AppTheme {
         iconColor:      AppColors.blueberry,
         textColor:      AppColors.textPrimary,
         subtitleTextStyle: TextStyle(
-          fontFamily: 'Inter', fontSize: 13, color: AppColors.grisTexto,
+          fontFamily: 'Nunito', fontSize: 13, color: AppColors.grisTexto,
         ),
       ),
 
@@ -213,7 +213,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.midnight,
         contentTextStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 14, color: Colors.white,
+          fontFamily: 'Nunito', fontSize: 14, color: Colors.white,
         ),
         actionTextColor: AppColors.gum,
         behavior:        SnackBarBehavior.floating,
@@ -228,21 +228,21 @@ class AppTheme {
 
       // ── TextTheme ─────────────────────────────────────────────────────────
       textTheme: const TextTheme(
-        displayLarge:   TextStyle(fontFamily: 'Inter', fontSize: 57, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -1),
-        displayMedium:  TextStyle(fontFamily: 'Inter', fontSize: 45, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.5),
-        displaySmall:   TextStyle(fontFamily: 'Inter', fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        headlineLarge:  TextStyle(fontFamily: 'Inter', fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.3),
-        headlineMedium: TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.3),
-        headlineSmall:  TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        titleLarge:     TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary, letterSpacing: -0.2),
-        titleMedium:    TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleSmall:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        bodyLarge:      TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textPrimary),
-        bodyMedium:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.textPrimary),
-        bodySmall:      TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w400, color: AppColors.grisTexto),
-        labelLarge:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        labelMedium:    TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.grisTexto),
-        labelSmall:     TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.grisTexto),
+        displayLarge:   TextStyle(fontFamily: 'Nunito', fontSize: 57, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -1),
+        displayMedium:  TextStyle(fontFamily: 'Nunito', fontSize: 45, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.5),
+        displaySmall:   TextStyle(fontFamily: 'Nunito', fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        headlineLarge:  TextStyle(fontFamily: 'Nunito', fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.3),
+        headlineMedium: TextStyle(fontFamily: 'Nunito', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.3),
+        headlineSmall:  TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        titleLarge:     TextStyle(fontFamily: 'Nunito', fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary, letterSpacing: -0.2),
+        titleMedium:    TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        titleSmall:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        bodyLarge:      TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textPrimary),
+        bodyMedium:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.textPrimary),
+        bodySmall:      TextStyle(fontFamily: 'Nunito', fontSize: 12, fontWeight: FontWeight.w400, color: AppColors.grisTexto),
+        labelLarge:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        labelMedium:    TextStyle(fontFamily: 'Nunito', fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.grisTexto),
+        labelSmall:     TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.grisTexto),
       ),
     );
   }
@@ -279,7 +279,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3:            true,
       colorScheme:             colorScheme,
-      fontFamily:              'Inter',
+      fontFamily:              'Nunito',
       scaffoldBackgroundColor: darkBackground,
 
       appBarTheme: const AppBarTheme(
@@ -289,7 +289,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle:            false,
         titleTextStyle: TextStyle(
-          fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700,
+          fontFamily: 'Nunito', fontSize: 18, fontWeight: FontWeight.w700,
           color: darkTextPrimary, letterSpacing: -0.3,
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
@@ -308,8 +308,8 @@ class AppTheme {
         showUnselectedLabels: true,
         type:                 BottomNavigationBarType.fixed,
         elevation:            8,
-        selectedLabelStyle:   TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w400),
+        selectedLabelStyle:   TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w400),
       ),
 
       cardTheme: CardThemeData(
@@ -333,7 +333,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 15, fontWeight: FontWeight.w600,
             letterSpacing: 0.1,
           ),
         ),
@@ -346,7 +346,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 15, fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -357,7 +357,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600,
+            fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -386,9 +386,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide:   const BorderSide(color: AppColors.gum, width: 2),
         ),
-        labelStyle:      const TextStyle(fontFamily: 'Inter', fontSize: 14, color: darkTextSecond),
-        hintStyle:       const TextStyle(fontFamily: 'Inter', fontSize: 14, color: darkTextSecond),
-        errorStyle:      const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.gum),
+        labelStyle:      const TextStyle(fontFamily: 'Nunito', fontSize: 14, color: darkTextSecond),
+        hintStyle:       const TextStyle(fontFamily: 'Nunito', fontSize: 14, color: darkTextSecond),
+        errorStyle:      const TextStyle(fontFamily: 'Nunito', fontSize: 12, color: AppColors.gum),
         prefixIconColor: darkTextSecond,
         suffixIconColor: darkTextSecond,
       ),
@@ -398,11 +398,11 @@ class AppTheme {
         selectedColor:      AppColors.blueberry,
         disabledColor:      darkOutline,
         labelStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w500,
+          fontFamily: 'Nunito', fontSize: 13, fontWeight: FontWeight.w500,
           color: darkTextPrimary,
         ),
         secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w500,
+          fontFamily: 'Nunito', fontSize: 13, fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -439,14 +439,14 @@ class AppTheme {
         iconColor:      AppColors.lightBlue,
         textColor:      darkTextPrimary,
         subtitleTextStyle: TextStyle(
-          fontFamily: 'Inter', fontSize: 13, color: darkTextSecond,
+          fontFamily: 'Nunito', fontSize: 13, color: darkTextSecond,
         ),
       ),
 
       snackBarTheme: SnackBarThemeData(
         backgroundColor: darkSurfaceAlt,
         contentTextStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 14, color: darkTextPrimary,
+          fontFamily: 'Nunito', fontSize: 14, color: darkTextPrimary,
         ),
         actionTextColor: AppColors.gum,
         behavior:        SnackBarBehavior.floating,
@@ -459,21 +459,21 @@ class AppTheme {
       ),
 
       textTheme: const TextTheme(
-        displayLarge:   TextStyle(fontFamily: 'Inter', fontSize: 57, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -1),
-        displayMedium:  TextStyle(fontFamily: 'Inter', fontSize: 45, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.5),
-        displaySmall:   TextStyle(fontFamily: 'Inter', fontSize: 36, fontWeight: FontWeight.w700, color: darkTextPrimary),
-        headlineLarge:  TextStyle(fontFamily: 'Inter', fontSize: 28, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.3),
-        headlineMedium: TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.3),
-        headlineSmall:  TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: darkTextPrimary),
-        titleLarge:     TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w600, color: darkTextPrimary, letterSpacing: -0.2),
-        titleMedium:    TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600, color: darkTextPrimary),
-        titleSmall:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600, color: darkTextPrimary),
-        bodyLarge:      TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w400, color: darkTextPrimary),
-        bodyMedium:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w400, color: darkTextPrimary),
-        bodySmall:      TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w400, color: darkTextSecond),
-        labelLarge:     TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w600, color: darkTextPrimary),
-        labelMedium:    TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w500, color: darkTextSecond),
-        labelSmall:     TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w500, color: darkTextSecond),
+        displayLarge:   TextStyle(fontFamily: 'Nunito', fontSize: 57, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -1),
+        displayMedium:  TextStyle(fontFamily: 'Nunito', fontSize: 45, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.5),
+        displaySmall:   TextStyle(fontFamily: 'Nunito', fontSize: 36, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        headlineLarge:  TextStyle(fontFamily: 'Nunito', fontSize: 28, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.3),
+        headlineMedium: TextStyle(fontFamily: 'Nunito', fontSize: 24, fontWeight: FontWeight.w700, color: darkTextPrimary, letterSpacing: -0.3),
+        headlineSmall:  TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.w700, color: darkTextPrimary),
+        titleLarge:     TextStyle(fontFamily: 'Nunito', fontSize: 18, fontWeight: FontWeight.w600, color: darkTextPrimary, letterSpacing: -0.2),
+        titleMedium:    TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        titleSmall:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        bodyLarge:      TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w400, color: darkTextPrimary),
+        bodyMedium:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w400, color: darkTextPrimary),
+        bodySmall:      TextStyle(fontFamily: 'Nunito', fontSize: 12, fontWeight: FontWeight.w400, color: darkTextSecond),
+        labelLarge:     TextStyle(fontFamily: 'Nunito', fontSize: 14, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        labelMedium:    TextStyle(fontFamily: 'Nunito', fontSize: 12, fontWeight: FontWeight.w500, color: darkTextSecond),
+        labelSmall:     TextStyle(fontFamily: 'Nunito', fontSize: 11, fontWeight: FontWeight.w500, color: darkTextSecond),
       ),
     );
   }

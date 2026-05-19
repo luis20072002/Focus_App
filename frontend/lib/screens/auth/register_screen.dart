@@ -42,9 +42,9 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _passFocused     = false;
   bool _passConfFocused = false;
 
-  bool _obscurePass     = true;
-  bool _obscureConf     = true;
-  bool _loading         = false;
+  bool _obscurePass = true;
+  bool _obscureConf = true;
+  bool _loading     = false;
 
   late final AnimationController _eyePass;
   late final AnimationController _eyeConf;
@@ -52,13 +52,13 @@ class _RegisterScreenState extends State<RegisterScreen>
   late final Animation<double>   _eyeConfAnim;
 
   // Stepper
-  int _currentStep = 0;
+  int  _currentStep  = 0;
   bool _goingForward = true;
 
   // Fecha
-  int _selectedMonth = DateTime.now().month - 1; // 0-based
-  int _selectedDay   = DateTime.now().day - 1;
-  int _selectedYear  = DateTime.now().year - 18;
+  int _selectedMonth     = DateTime.now().month - 1;
+  int _selectedDay       = DateTime.now().day - 1;
+  int _selectedYearIndex = 13;
 
   final List<String> _months = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   ];
 
   int get _daysInMonth {
-    final year  = _selectedYear;
+    final year  = _years[_selectedYearIndex];
     final month = _selectedMonth + 1;
     return DateTime(year, month + 1, 0).day;
   }
@@ -76,17 +76,38 @@ class _RegisterScreenState extends State<RegisterScreen>
     return List.generate(100, (i) => now - 5 - i);
   }
 
-  // Form keys por paso
   final _step1Key = GlobalKey<FormState>();
   final _step2Key = GlobalKey<FormState>();
   final _step3Key = GlobalKey<FormState>();
+
+  static const _gradients = [
+    [AppColors.blueberry, AppColors.midnight],
+    [Color(0xFF7B6EE8), AppColors.midnight],
+    [AppColors.gum, Color(0xFF8B1A6B)],
+    [AppColors.neutralOrange, Color(0xFFB05A40)],
+  ];
+
+  static const _titles = [
+    '¿Cómo te llamas?',
+    '¿Dónde te encontramos?',
+    'Crea tu contraseña',
+    '¿Cuándo naciste?',
+  ];
+
+  static const _subtitles = [
+    'Tu nombre aparecerá en tu perfil.',
+    'Usa tu correo o teléfono para ingresar.',
+    'Mínimo 6 caracteres, que sea segura.',
+    '¡Nos gustaría felicitarte!',
+  ];
 
   @override
   void initState() {
     super.initState();
 
-    _eyePass = AnimationController(vsync: this, duration: 250.ms);
-    _eyeConf = AnimationController(vsync: this, duration: 250.ms);
+    // FIX: duración reducida de 250ms a 200ms — mas snappy
+    _eyePass     = AnimationController(vsync: this, duration: 200.ms);
+    _eyeConf     = AnimationController(vsync: this, duration: 200.ms);
     _eyePassAnim = CurvedAnimation(parent: _eyePass, curve: Curves.easeInOut);
     _eyeConfAnim = CurvedAnimation(parent: _eyeConf, curve: Curves.easeInOut);
 
@@ -105,10 +126,16 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   @override
   void dispose() {
-    for (final c in [_nameCtrl, _lastnameCtrl, _usernameCtrl, _emailCtrl, _phoneCtrl, _passCtrl, _passConfCtrl]) {
+    for (final c in [
+      _nameCtrl, _lastnameCtrl, _usernameCtrl,
+      _emailCtrl, _phoneCtrl, _passCtrl, _passConfCtrl,
+    ]) {
       c.dispose();
     }
-    for (final f in [_nameFocus, _lastnameFocus, _usernameFocus, _emailFocus, _phoneFocus, _passFocus, _passConfFocus]) {
+    for (final f in [
+      _nameFocus, _lastnameFocus, _usernameFocus,
+      _emailFocus, _phoneFocus, _passFocus, _passConfFocus,
+    ]) {
       f.dispose();
     }
     _eyePass.dispose();
@@ -117,12 +144,12 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 
   void _nextStep() {
-    bool valid = false;
-    if (_currentStep == 0) {
-      valid = _step1Key.currentState?.validate() ?? false;
-    } else if (_currentStep == 1) valid = _step2Key.currentState?.validate() ?? false;
-    else if (_currentStep == 2) valid = _step3Key.currentState?.validate() ?? false;
-    else if (_currentStep == 3) valid = true;
+    final valid = switch (_currentStep) {
+      0 => _step1Key.currentState?.validate() ?? false,
+      1 => _step2Key.currentState?.validate() ?? false,
+      2 => _step3Key.currentState?.validate() ?? false,
+      _ => true,
+    };
 
     if (!valid) return;
 
@@ -138,7 +165,8 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   void _prevStep() {
     if (_currentStep == 0) {
-      context.go('/welcome');
+      // Va a login destruyendo register del stack
+      context.go('/login');
     } else {
       setState(() {
         _goingForward = false;
@@ -152,16 +180,28 @@ class _RegisterScreenState extends State<RegisterScreen>
     final phone = _phoneCtrl.text.trim();
 
     if (email.isEmpty && phone.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(_snackBar('Debes ingresar correo o teléfono'));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Debes ingresar correo o teléfono',
+            style: GoogleFonts.nunito(color: Colors.white),
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
       return;
     }
 
-    // Construir fecha
-    final day   = _selectedDay + 1;
-    final month = _selectedMonth + 1;
-    final year  = _years[_selectedYear < _years.length ? 0 : 0];
-    // Usamos los valores directamente
-    final birthDate = '${ _selectedYear.toString().padLeft(4,'0')}-${month.toString().padLeft(2,'0')}-${day.toString().padLeft(2,'0')}';
+    final day       = _selectedDay + 1;
+    final month     = _selectedMonth + 1;
+    final year      = _years[_selectedYearIndex];
+    final birthDate =
+        '${year.toString().padLeft(4, '0')}-'
+        '${month.toString().padLeft(2, '0')}-'
+        '${day.toString().padLeft(2, '0')}';
 
     setState(() => _loading = true);
     final auth = context.read<AuthProvider>();
@@ -182,55 +222,46 @@ class _RegisterScreenState extends State<RegisterScreen>
       context.go('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        _snackBar(auth.error ?? 'Error al registrarse'),
+        SnackBar(
+          content: Text(
+            auth.error ?? 'Error al registrarse',
+            style: GoogleFonts.nunito(color: Colors.white),
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
       );
     }
   }
 
-  SnackBar _snackBar(String msg) => SnackBar(
-    content: Text(msg, style: GoogleFonts.nunito(color: Colors.white)),
-    backgroundColor: AppColors.error,
-    behavior: SnackBarBehavior.floating,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    margin: const EdgeInsets.all(16),
-  );
-
-  // ── Títulos y subtítulos por paso ──────────────────────────────────────
-
-  static const _titles    = ['¿Cómo te llamas?', '¿Dónde te encontramos?', 'Crea tu contraseña', '¿Cuándo naciste?'];
-  static const _subtitles = ['Tu nombre aparecerá en tu perfil.', 'Usa tu correo o teléfono para ingresar.', 'Mínimo 6 caracteres, que sea segura.', '¡Nos gustaría felicitarte!'];
-
-  // ── Gradientes por paso ────────────────────────────────────────────────
-
-  static const _gradients = [
-    [AppColors.blueberry, AppColors.midnight],
-    [Color(0xFF7B6EE8), AppColors.midnight],
-    [AppColors.gum, Color(0xFF8B1A6B)],
-    [AppColors.neutralOrange, Color(0xFFB05A40)],
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ── Header ────────────────────────────────────────────────
+          // ── Header ──────────────────────────────────────────────
           _RegisterHeader(
-            step: _currentStep,
-            totalSteps: 4,
+            step:           _currentStep,
+            totalSteps:     4,
             gradientColors: _gradients[_currentStep].map((c) => c).toList(),
-            title: _titles[_currentStep],
-            subtitle: _subtitles[_currentStep],
-            onBack: _prevStep,
+            title:          _titles[_currentStep],
+            subtitle:       _subtitles[_currentStep],
+            onBack:         _prevStep,
           ),
 
-          // ── Contenido del paso ────────────────────────────────────
+          // ── Contenido del paso ───────────────────────────────────
+          // FIX: duración del switcher reducida de 320ms a 200ms.
+          // Se eliminaron las animaciones .fadeIn/.slideY individuales
+          // de cada campo dentro de los pasos — el switcher ya provee
+          // la transición de entrada completa. Tener ambas corriendo
+          // simultaneamente (switcher + flutter_animate por campo)
+          // era la causa principal del lag perceptible.
           Expanded(
             child: AnimatedSwitcher(
-              duration: 320.ms,
+              duration: 200.ms,
               transitionBuilder: (child, animation) {
                 final offset = _goingForward
                     ? const Offset(1.0, 0)
@@ -255,14 +286,15 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           ),
 
-          // ── Botón siguiente ───────────────────────────────────────
+          // ── Botón siguiente ──────────────────────────────────────
           Padding(
             padding: EdgeInsets.fromLTRB(
-                28, 0, 28, MediaQuery.of(context).padding.bottom + 20),
+              28, 0, 28, MediaQuery.of(context).padding.bottom + 20,
+            ),
             child: _loading
                 ? const Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.midnight,
+                      color: AppColors.blueberry,
                       strokeWidth: 2.5,
                     ),
                   )
@@ -284,6 +316,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                         style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -295,70 +328,65 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 
   Widget _buildStep() {
-    switch (_currentStep) {
-      case 0:
-        return _Step1(
-          formKey: _step1Key,
-          nameCtrl: _nameCtrl,
-          nameFocus: _nameFocus,
-          nameFocused: _nameFocused,
-          lastnameCtrl: _lastnameCtrl,
-          lastnameFocus: _lastnameFocus,
-          lastnameFocused: _lastnameFocused,
-        );
-      case 1:
-        return _Step2(
-          formKey: _step2Key,
-          usernameCtrl: _usernameCtrl,
-          usernameFocus: _usernameFocus,
-          usernameFocused: _usernameFocused,
-          emailCtrl: _emailCtrl,
-          emailFocus: _emailFocus,
-          emailFocused: _emailFocused,
-          phoneCtrl: _phoneCtrl,
-          phoneFocus: _phoneFocus,
-          phoneFocused: _phoneFocused,
-        );
-      case 2:
-        return _Step3(
-          formKey: _step3Key,
-          passCtrl: _passCtrl,
-          passFocus: _passFocus,
-          passFocused: _passFocused,
-          passConfCtrl: _passConfCtrl,
-          passConfFocus: _passConfFocus,
-          passConfFocused: _passConfFocused,
-          obscurePass: _obscurePass,
-          obscureConf: _obscureConf,
-          eyePassAnim: _eyePassAnim,
-          eyeConfAnim: _eyeConfAnim,
-          onTogglePass: () => setState(() {
-            _obscurePass = !_obscurePass;
-            _obscurePass ? _eyePass.reverse() : _eyePass.forward();
-          }),
-          onToggleConf: () => setState(() {
-            _obscureConf = !_obscureConf;
-            _obscureConf ? _eyeConf.reverse() : _eyeConf.forward();
-          }),
-        );
-      case 3:
-        return _Step4(
-          months: _months,
-          daysInMonth: _daysInMonth,
-          years: _years,
-          selectedMonth: _selectedMonth,
-          selectedDay: _selectedDay,
-          selectedYear: _selectedYear,
-          onMonthChanged: (i) => setState(() {
-            _selectedMonth = i;
-            if (_selectedDay >= _daysInMonth) _selectedDay = _daysInMonth - 1;
-          }),
-          onDayChanged: (i) => setState(() => _selectedDay = i),
-          onYearChanged: (i) => setState(() => _selectedYear = _years[i]),
-        );
-      default:
-        return const SizedBox();
-    }
+    return switch (_currentStep) {
+      0 => _Step1(
+        formKey:         _step1Key,
+        nameCtrl:        _nameCtrl,
+        nameFocus:       _nameFocus,
+        nameFocused:     _nameFocused,
+        lastnameCtrl:    _lastnameCtrl,
+        lastnameFocus:   _lastnameFocus,
+        lastnameFocused: _lastnameFocused,
+      ),
+      1 => _Step2(
+        formKey:         _step2Key,
+        usernameCtrl:    _usernameCtrl,
+        usernameFocus:   _usernameFocus,
+        usernameFocused: _usernameFocused,
+        emailCtrl:       _emailCtrl,
+        emailFocus:      _emailFocus,
+        emailFocused:    _emailFocused,
+        phoneCtrl:       _phoneCtrl,
+        phoneFocus:      _phoneFocus,
+        phoneFocused:    _phoneFocused,
+      ),
+      2 => _Step3(
+        formKey:         _step3Key,
+        passCtrl:        _passCtrl,
+        passFocus:       _passFocus,
+        passFocused:     _passFocused,
+        passConfCtrl:    _passConfCtrl,
+        passConfFocus:   _passConfFocus,
+        passConfFocused: _passConfFocused,
+        obscurePass:     _obscurePass,
+        obscureConf:     _obscureConf,
+        eyePassAnim:     _eyePassAnim,
+        eyeConfAnim:     _eyeConfAnim,
+        onTogglePass: () => setState(() {
+          _obscurePass = !_obscurePass;
+          _obscurePass ? _eyePass.reverse() : _eyePass.forward();
+        }),
+        onToggleConf: () => setState(() {
+          _obscureConf = !_obscureConf;
+          _obscureConf ? _eyeConf.reverse() : _eyeConf.forward();
+        }),
+      ),
+      3 => _Step4(
+        months:            _months,
+        daysInMonth:       _daysInMonth,
+        years:             _years,
+        selectedMonth:     _selectedMonth,
+        selectedDay:       _selectedDay,
+        selectedYearIndex: _selectedYearIndex,
+        onMonthChanged: (i) => setState(() {
+          _selectedMonth = i;
+          if (_selectedDay >= _daysInMonth) _selectedDay = _daysInMonth - 1;
+        }),
+        onDayChanged:  (i) => setState(() => _selectedDay = i),
+        onYearChanged: (i) => setState(() => _selectedYearIndex = i),
+      ),
+      _ => const SizedBox(),
+    };
   }
 }
 
@@ -386,7 +414,8 @@ class _RegisterHeader extends StatelessWidget {
     final topPad = MediaQuery.of(context).padding.top;
 
     return AnimatedContainer(
-      duration: 400.ms,
+      // FIX: duración del header reducida de 400ms a 250ms
+      duration: 250.ms,
       curve: Curves.easeInOut,
       padding: EdgeInsets.fromLTRB(20, topPad + 8, 20, 24),
       decoration: BoxDecoration(
@@ -396,27 +425,24 @@ class _RegisterHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
+          bottomLeft:  Radius.circular(28),
           bottomRight: Radius.circular(28),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Botón back
           GestureDetector(
             onTap: onBack,
             child: Container(
-              width: 36,
-              height: 36,
+              width: 36, height: 36,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 16,
+                color: Colors.white, size: 16,
               ),
             ),
           ),
@@ -427,7 +453,8 @@ class _RegisterHeader extends StatelessWidget {
           Row(
             children: List.generate(totalSteps, (i) => Expanded(
               child: AnimatedContainer(
-                duration: 300.ms,
+                // FIX: reducido de 300ms a 200ms
+                duration: 200.ms,
                 margin: EdgeInsets.only(right: i < totalSteps - 1 ? 6 : 0),
                 height: 4,
                 decoration: BoxDecoration(
@@ -442,7 +469,9 @@ class _RegisterHeader extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Título
+          // FIX: titulo y subtitulo usan animate() con key para que
+          // solo se animen cuando cambia el paso, no en cada rebuild.
+          // Duración reducida de 300ms a 200ms.
           Text(
             title,
             style: GoogleFonts.nunito(
@@ -451,11 +480,12 @@ class _RegisterHeader extends StatelessWidget {
               fontWeight: FontWeight.w800,
               height: 1.2,
             ),
-          ).animate(key: ValueKey('title_$step')).fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, duration: 300.ms),
+          ).animate(key: ValueKey('title_$step'))
+              .fadeIn(duration: 200.ms)
+              .slideY(begin: 0.08, end: 0, duration: 200.ms),
 
           const SizedBox(height: 6),
 
-          // Subtítulo
           Text(
             subtitle,
             style: GoogleFonts.nunito(
@@ -463,7 +493,8 @@ class _RegisterHeader extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
-          ).animate(key: ValueKey('sub_$step')).fadeIn(delay: 80.ms, duration: 300.ms),
+          ).animate(key: ValueKey('sub_$step'))
+              .fadeIn(delay: 60.ms, duration: 200.ms),
         ],
       ),
     );
@@ -493,6 +524,9 @@ class _Step1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FIX: sin .animate() en los campos individuales.
+    // El AnimatedSwitcher padre ya anima la entrada del paso completo.
+    // Agregar animaciones por campo encima causaba el lag.
     return Form(
       key: formKey,
       child: Column(
@@ -502,23 +536,25 @@ class _Step1 extends StatelessWidget {
           const SizedBox(height: 8),
           _AnimatedField(
             controller: nameCtrl,
-            focusNode: nameFocus,
-            isFocused: nameFocused,
-            hintText: 'Juan',
+            focusNode:  nameFocus,
+            isFocused:  nameFocused,
+            hintText:   'Juan',
             prefixIcon: Icons.badge_outlined,
-            validator: (v) => v == null || v.trim().isEmpty ? 'Campo obligatorio' : null,
-          ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, duration: 300.ms),
+            validator: (v) => v == null || v.trim().isEmpty
+                ? 'Campo obligatorio' : null,
+          ),
           const SizedBox(height: 20),
           _FieldLabel(text: 'Apellido'),
           const SizedBox(height: 8),
           _AnimatedField(
             controller: lastnameCtrl,
-            focusNode: lastnameFocus,
-            isFocused: lastnameFocused,
-            hintText: 'Pérez',
+            focusNode:  lastnameFocus,
+            isFocused:  lastnameFocused,
+            hintText:   'Pérez',
             prefixIcon: Icons.badge_outlined,
-            validator: (v) => v == null || v.trim().isEmpty ? 'Campo obligatorio' : null,
-          ).animate().fadeIn(delay: 80.ms, duration: 300.ms).slideY(begin: 0.1, end: 0, delay: 80.ms, duration: 300.ms),
+            validator: (v) => v == null || v.trim().isEmpty
+                ? 'Campo obligatorio' : null,
+          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -564,25 +600,25 @@ class _Step2 extends StatelessWidget {
           const SizedBox(height: 8),
           _AnimatedField(
             controller: usernameCtrl,
-            focusNode: usernameFocus,
-            isFocused: usernameFocused,
-            hintText: '@juanperez',
+            focusNode:  usernameFocus,
+            isFocused:  usernameFocused,
+            hintText:   '@juanperez',
             prefixIcon: Icons.alternate_email_rounded,
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Campo obligatorio';
               if (v.trim().length < 3) return 'Mínimo 3 caracteres';
               return null;
             },
-          ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, duration: 300.ms),
+          ),
           const SizedBox(height: 20),
           _FieldLabel(text: 'Correo electrónico (opcional si pones teléfono)'),
           const SizedBox(height: 8),
           _AnimatedField(
-            controller: emailCtrl,
-            focusNode: emailFocus,
-            isFocused: emailFocused,
-            hintText: 'juan@gmail.com',
-            prefixIcon: Icons.email_outlined,
+            controller:   emailCtrl,
+            focusNode:    emailFocus,
+            isFocused:    emailFocused,
+            hintText:     'juan@gmail.com',
+            prefixIcon:   Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
               if (v != null && v.isNotEmpty) {
@@ -591,14 +627,20 @@ class _Step2 extends StatelessWidget {
               }
               return null;
             },
-          ).animate().fadeIn(delay: 80.ms, duration: 300.ms).slideY(begin: 0.1, end: 0, delay: 80.ms, duration: 300.ms),
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(child: Divider(color: AppColors.grisTexto.withOpacity(0.2))),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('o', style: GoogleFonts.nunito(color: AppColors.grisTexto, fontSize: 13)),
+                child: Text(
+                  'o',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.grisTexto,
+                    fontSize: 13,
+                  ),
+                ),
               ),
               Expanded(child: Divider(color: AppColors.grisTexto.withOpacity(0.2))),
             ],
@@ -607,13 +649,13 @@ class _Step2 extends StatelessWidget {
           _FieldLabel(text: 'Teléfono (opcional si pones correo)'),
           const SizedBox(height: 8),
           _AnimatedField(
-            controller: phoneCtrl,
-            focusNode: phoneFocus,
-            isFocused: phoneFocused,
-            hintText: '+573001234567',
-            prefixIcon: Icons.phone_outlined,
+            controller:   phoneCtrl,
+            focusNode:    phoneFocus,
+            isFocused:    phoneFocused,
+            hintText:     '+573001234567',
+            prefixIcon:   Icons.phone_outlined,
             keyboardType: TextInputType.phone,
-          ).animate().fadeIn(delay: 160.ms, duration: 300.ms).slideY(begin: 0.1, end: 0, delay: 160.ms, duration: 300.ms),
+          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -664,11 +706,11 @@ class _Step3 extends StatelessWidget {
           _FieldLabel(text: 'Contraseña'),
           const SizedBox(height: 8),
           _AnimatedField(
-            controller: passCtrl,
-            focusNode: passFocus,
-            isFocused: passFocused,
-            hintText: '••••••••',
-            prefixIcon: Icons.lock_outline_rounded,
+            controller:  passCtrl,
+            focusNode:   passFocus,
+            isFocused:   passFocused,
+            hintText:    '••••••••',
+            prefixIcon:  Icons.lock_outline_rounded,
             obscureText: obscurePass,
             validator: (v) {
               if (v == null || v.isEmpty) return 'Campo obligatorio';
@@ -676,23 +718,23 @@ class _Step3 extends StatelessWidget {
               return null;
             },
             suffix: _EyeButton(animation: eyePassAnim, onTap: onTogglePass),
-          ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, duration: 300.ms),
+          ),
           const SizedBox(height: 20),
           _FieldLabel(text: 'Confirmar contraseña'),
           const SizedBox(height: 8),
           _AnimatedField(
-            controller: passConfCtrl,
-            focusNode: passConfFocus,
-            isFocused: passConfFocused,
-            hintText: '••••••••',
-            prefixIcon: Icons.lock_outline_rounded,
+            controller:  passConfCtrl,
+            focusNode:   passConfFocus,
+            isFocused:   passConfFocused,
+            hintText:    '••••••••',
+            prefixIcon:  Icons.lock_outline_rounded,
             obscureText: obscureConf,
             validator: (v) {
               if (v != passCtrl.text) return 'Las contraseñas no coinciden';
               return null;
             },
             suffix: _EyeButton(animation: eyeConfAnim, onTap: onToggleConf),
-          ).animate().fadeIn(delay: 80.ms, duration: 300.ms).slideY(begin: 0.1, end: 0, delay: 80.ms, duration: 300.ms),
+          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -708,7 +750,7 @@ class _Step4 extends StatelessWidget {
   final List<int> years;
   final int selectedMonth;
   final int selectedDay;
-  final int selectedYear;
+  final int selectedYearIndex;
   final ValueChanged<int> onMonthChanged;
   final ValueChanged<int> onDayChanged;
   final ValueChanged<int> onYearChanged;
@@ -719,7 +761,7 @@ class _Step4 extends StatelessWidget {
     required this.years,
     required this.selectedMonth,
     required this.selectedDay,
-    required this.selectedYear,
+    required this.selectedYearIndex,
     required this.onMonthChanged,
     required this.onDayChanged,
     required this.onYearChanged,
@@ -727,13 +769,12 @@ class _Step4 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final yearIndex = years.indexOf(selectedYear).clamp(0, years.length - 1);
+    final selectedYear = years[selectedYearIndex];
 
     return Column(
       children: [
         const SizedBox(height: 8),
 
-        // Selector scroll tipo iOS
         Container(
           height: 220,
           decoration: BoxDecoration(
@@ -750,11 +791,8 @@ class _Step4 extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Líneas de selección
               Positioned(
-                top: 88,
-                left: 0,
-                right: 0,
+                top: 88, left: 0, right: 0,
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
@@ -769,7 +807,6 @@ class _Step4 extends StatelessWidget {
                 ),
               ),
 
-              // Columnas
               Row(
                 children: [
                   // Mes
@@ -777,7 +814,8 @@ class _Step4 extends StatelessWidget {
                     flex: 3,
                     child: CupertinoPicker(
                       scrollController: FixedExtentScrollController(
-                          initialItem: selectedMonth),
+                        initialItem: selectedMonth,
+                      ),
                       itemExtent: 44,
                       onSelectedItemChanged: onMonthChanged,
                       selectionOverlay: const SizedBox(),
@@ -799,7 +837,8 @@ class _Step4 extends StatelessWidget {
                     flex: 2,
                     child: CupertinoPicker(
                       scrollController: FixedExtentScrollController(
-                          initialItem: selectedDay.clamp(0, daysInMonth - 1)),
+                        initialItem: selectedDay.clamp(0, daysInMonth - 1),
+                      ),
                       itemExtent: 44,
                       onSelectedItemChanged: onDayChanged,
                       selectionOverlay: const SizedBox(),
@@ -821,7 +860,8 @@ class _Step4 extends StatelessWidget {
                     flex: 2,
                     child: CupertinoPicker(
                       scrollController: FixedExtentScrollController(
-                          initialItem: yearIndex),
+                        initialItem: selectedYearIndex,
+                      ),
                       itemExtent: 44,
                       onSelectedItemChanged: onYearChanged,
                       selectionOverlay: const SizedBox(),
@@ -841,16 +881,10 @@ class _Step4 extends StatelessWidget {
               ),
             ],
           ),
-        ).animate().fadeIn(duration: 350.ms).scale(
-              begin: const Offset(0.96, 0.96),
-              end: const Offset(1, 1),
-              duration: 350.ms,
-              curve: Curves.easeOut,
-            ),
+        ),
 
         const SizedBox(height: 24),
 
-        // Fecha seleccionada
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           decoration: BoxDecoration(
@@ -876,7 +910,7 @@ class _Step4 extends StatelessWidget {
               ),
             ],
           ),
-        ).animate().fadeIn(delay: 150.ms, duration: 300.ms),
+        ),
 
         const SizedBox(height: 32),
       ],
@@ -920,8 +954,8 @@ class _AnimatedField extends StatelessWidget {
     required this.isFocused,
     required this.hintText,
     required this.prefixIcon,
-    this.obscureText = false,
-    this.keyboardType = TextInputType.text,
+    this.obscureText   = false,
+    this.keyboardType  = TextInputType.text,
     this.validator,
     this.suffix,
   });
@@ -948,9 +982,9 @@ class _AnimatedField extends StatelessWidget {
         ],
       ),
       child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        obscureText: obscureText,
+        controller:   controller,
+        focusNode:    focusNode,
+        obscureText:  obscureText,
         keyboardType: keyboardType,
         style: GoogleFonts.nunito(
           color: AppColors.midnight,
@@ -968,15 +1002,20 @@ class _AnimatedField extends StatelessWidget {
             color: isFocused ? AppColors.blueberry : AppColors.grisTexto,
             size: 20,
           ),
-          suffixIcon: suffix,
-          filled: false,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
+          suffixIcon:         suffix,
+          filled:             false,
+          border:             InputBorder.none,
+          enabledBorder:      InputBorder.none,
+          focusedBorder:      InputBorder.none,
+          errorBorder:        InputBorder.none,
           focusedErrorBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          errorStyle: GoogleFonts.nunito(color: AppColors.error, fontSize: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16, vertical: 16,
+          ),
+          errorStyle: GoogleFonts.nunito(
+            color: AppColors.error,
+            fontSize: 12,
+          ),
         ),
         validator: validator,
       ),
@@ -998,7 +1037,7 @@ class _EyeButton extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: AnimatedBuilder(
           animation: animation,
-          builder: (_, _) => Stack(
+          builder: (_, __) => Stack(
             alignment: Alignment.center,
             children: [
               Opacity(

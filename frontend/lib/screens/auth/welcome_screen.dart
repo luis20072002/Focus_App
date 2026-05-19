@@ -120,9 +120,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           SafeArea(
             child: Column(
               children: [
-                // Área superior con la animación Lottie
+                // Área superior — ilustración por slide
                 SizedBox(
-                  height: size.height * 0.52,
+                  height: size.height * 0.45,
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: _onPageChanged,
@@ -133,6 +133,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         child: Lottie.asset(
                           _slides[index].animation,
                           fit: BoxFit.contain,
+                          // renderCache evita el StackOverflow de Lottie en Flutter Web
+                          // con paths complejos sobre CanvasKit
+                          renderCache: RenderCache.raster,
+                          errorBuilder: (context, error, stack) =>
+                              _SlideFallback(index: index),
                         ),
                       );
                     },
@@ -265,6 +270,44 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Fallback visual si Lottie falla en web ────────────────────────────────
+
+class _SlideFallback extends StatelessWidget {
+  final int index;
+  const _SlideFallback({required this.index});
+
+  static const _icons = [
+    Icons.check_circle_outline_rounded, // Organiza tu día
+    Icons.bolt_rounded,                  // Gana Foints
+    Icons.people_outline_rounded,        // Compite con amigos
+  ];
+
+  static const _colors = [
+    Color(0xFF5A4EDB),
+    Color(0xFFEA88B9),
+    Color(0xFFBCBBF2),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 180,
+        height: 180,
+        decoration: BoxDecoration(
+          color: _colors[index % _colors.length].withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          _icons[index % _icons.length],
+          size: 90,
+          color: _colors[index % _colors.length],
+        ),
       ),
     );
   }
