@@ -108,34 +108,40 @@ class _MyAppState extends State<MyApp> {
         GoRoute(path: '/home',            builder: (_, __) => const HomeScreen()),
 
         // ── Tasks ─────────────────────────────────────────────────────────────
-        // GoRoute(path: '/create-task',     builder: (_, __) => const CreateTaskScreen()),
-        // GoRoute(
-        //   path: '/task/:id',
-        //   builder: (_, state) => TaskDetailScreen(
-        //     taskId: int.parse(state.pathParameters['id']!),
-        //   ),
-        // ),
+        GoRoute(path: '/create-task',     builder: (_, __) => const CreateTaskScreen()),
+        GoRoute(
+          path: '/task/:id',
+          builder: (_, state) => TaskDetailScreen(
+            taskId: int.parse(state.pathParameters['id']!),
+          ),
+        ),
+        GoRoute(
+                path: '/edit-task/:id',
+                builder: (_, state) => CreateTaskScreen(
+                  taskId: int.tryParse(state.pathParameters['id'] ?? ''),
+                ),
+              ),
 
-        // // ── Calendar ──────────────────────────────────────────────────────────
-        // GoRoute(path: '/calendar',        builder: (_, __) => const CalendarScreen()),
+        // ── Calendar ──────────────────────────────────────────────────────────
+        GoRoute(path: '/calendar',        builder: (_, __) => const CalendarScreen()),
 
         // // ── Profile ───────────────────────────────────────────────────────────
-        // GoRoute(path: '/profile',         builder: (_, __) => const ProfileScreen()),
-        // GoRoute(path: '/edit-profile',    builder: (_, __) => const EditProfileScreen()),
-        // GoRoute(path: '/settings',        builder: (_, __) => const SettingsScreen()),
+        GoRoute(path: '/profile',         builder: (_, __) => const ProfileScreen()),
+        GoRoute(path: '/edit-profile',    builder: (_, __) => const EditProfileScreen()),
+        GoRoute(path: '/settings',        builder: (_, __) => const SettingsScreen()),
 
-        // // ── Social ────────────────────────────────────────────────────────────
-        // GoRoute(path: '/search',          builder: (_, __) => const SearchScreen()),
-        // GoRoute(
-        //   path: '/user/:username',
-        //   builder: (_, state) => UserProfileScreen(
-        //     username: state.pathParameters['username']!,
-        //   ),
-        // ),
-        // GoRoute(path: '/friends',         builder: (_, __) => const FriendsScreen()),
+        // ── Social ────────────────────────────────────────────────────────────
+        GoRoute(path: '/search',          builder: (_, __) => const SearchScreen()),
+        GoRoute(
+          path: '/user/:username',
+          builder: (_, state) => UserProfileScreen(
+            username: state.pathParameters['username']!,
+          ),
+        ),
+        GoRoute(path: '/friends',         builder: (_, __) => const FriendsScreen()),
 
-        // // ── Notifications ─────────────────────────────────────────────────────
-        // GoRoute(path: '/notifications',   builder: (_, __) => const NotificationsScreen()),
+        // ── Notifications ─────────────────────────────────────────────────────
+        GoRoute(path: '/notifications',   builder: (_, __) => const NotificationsScreen()),
       ],
     );
   }

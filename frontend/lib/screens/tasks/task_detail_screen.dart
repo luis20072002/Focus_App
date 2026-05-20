@@ -9,7 +9,7 @@ class TaskDetailScreen extends StatelessWidget {
   final int taskId;
   const TaskDetailScreen({super.key, required this.taskId});
 
-  // ── Busca la tarea en todayTasks y calendarTasks ──────────────────────────
+  // ── Busca en todayTasks y calendarTasks ───────────────────────────────────
   Task? _findTask(TaskProvider prov) {
     final inToday = prov.todayTasks.where((t) => t.idTask == taskId);
     if (inToday.isNotEmpty) return inToday.first;
@@ -18,15 +18,21 @@ class TaskDetailScreen extends StatelessWidget {
     return null;
   }
 
-  // ── Color segun estado ────────────────────────────────────────────────────
-  Color _statusColor(Task task) {
-    if (task.isDone)    return const Color(0xFF34C759);
-    if (task.isExpired) return AppColors.error;
+  Color _statusColor(BuildContext context, Task task) {
+    final colors = Theme.of(context).colorScheme;
+    if (task.isDone)    return Colors.green;
+    if (task.isExpired) return colors.error;
     if (task.isUrgent)  return AppColors.gum;
-    return AppColors.blueberry;
+    return colors.primary;
   }
 
-  // ── Etiqueta legible del estado ───────────────────────────────────────────
+  IconData _statusIcon(Task task) {
+    if (task.isDone)    return Icons.check_circle_rounded;
+    if (task.isExpired) return Icons.cancel_rounded;
+    if (task.isUrgent)  return Icons.bolt_rounded;
+    return Icons.radio_button_unchecked_rounded;
+  }
+
   String _statusLabel(Task task) {
     if (task.isDone)    return 'Realizada';
     if (task.isExpired) return 'Vencida';
@@ -34,7 +40,6 @@ class TaskDetailScreen extends StatelessWidget {
     return 'Pendiente';
   }
 
-  // ── Formato de fecha ──────────────────────────────────────────────────────
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -50,26 +55,30 @@ class TaskDetailScreen extends StatelessWidget {
     }
   }
 
-  // ── Dialogo de confirmacion ───────────────────────────────────────────────
+  String _recurrenceLabel(String type) {
+    switch (type) {
+      case 'diaria':        return 'Todos los días';
+      case 'semanal':       return 'Semanal';
+      case 'personalizada': return 'Personalizada';
+      default:              return type;
+    }
+  }
+
+  String _parseDays(String days) {
+    const labels = {
+      '1': 'Lun', '2': 'Mar', '3': 'Mié',
+      '4': 'Jue', '5': 'Vie', '6': 'Sáb', '7': 'Dom',
+    };
+    return days.split(',').map((d) => labels[d.trim()] ?? d).join(', ');
+  }
+
   Future<bool> _confirmDelete(BuildContext context) async {
+    final theme = Theme.of(context);
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: const Text(
-              'Eliminar tarea',
-              style: TextStyle(
-                color:      AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            content: const Text(
-              'Esta accion no se puede deshacer.',
-              style: TextStyle(color: AppColors.grisTexto),
-            ),
+            title: const Text('Eliminar tarea'),
+            content: const Text('Esta acción no se puede deshacer.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -77,10 +86,10 @@ class TaskDetailScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text(
+                child: Text(
                   'Eliminar',
                   style: TextStyle(
-                    color:      AppColors.error,
+                    color:      theme.colorScheme.error,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -93,9 +102,10 @@ class TaskDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme    = Theme.of(context);
+    final colors   = theme.colorScheme;
     final taskProv = context.watch<TaskProvider>();
     final task     = _findTask(taskProv);
-    final colors   = Theme.of(context).colorScheme;
 
     // ── Tarea no encontrada ───────────────────────────────────────────────
     if (task == null) {
@@ -116,18 +126,16 @@ class TaskDetailScreen extends StatelessWidget {
                 color: AppColors.grisTexto.withOpacity(0.5),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Tarea no encontrada',
-                style: TextStyle(
-                  color:      AppColors.textPrimary,
-                  fontSize:   18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Es posible que haya sido eliminada.',
-                style: TextStyle(color: AppColors.grisTexto),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.grisTexto,
+                ),
               ),
               const SizedBox(height: 24),
               OutlinedButton(
@@ -140,12 +148,10 @@ class TaskDetailScreen extends StatelessWidget {
       );
     }
 
-    final statusColor = _statusColor(task);
+    final statusColor = _statusColor(context, task);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
@@ -154,14 +160,10 @@ class TaskDetailScreen extends StatelessWidget {
         actions: [
           if (!task.isDone)
             PopupMenuButton<String>(
-              color: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
               icon: const Icon(Icons.more_vert_rounded),
               onSelected: (value) async {
                 if (value == 'edit') {
-                  context.push('/edit-task/${task.idTask}');
+                  context.push('/create-task');
                 } else if (value == 'delete') {
                   final confirmed = await _confirmDelete(context);
                   if (confirmed && context.mounted) {
@@ -174,28 +176,28 @@ class TaskDetailScreen extends StatelessWidget {
               },
               itemBuilder: (_) => [
                 if (!task.isExpired)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
                         Icon(Icons.edit_outlined,
-                            color: AppColors.blueberry, size: 18),
-                        SizedBox(width: 10),
-                        Text('Editar',
+                            color: colors.primary, size: 18),
+                        const SizedBox(width: 10),
+                        const Text('Editar',
                             style: TextStyle(fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
                       Icon(Icons.delete_outline_rounded,
-                          color: AppColors.error, size: 18),
-                      SizedBox(width: 10),
+                          color: colors.error, size: 18),
+                      const SizedBox(width: 10),
                       Text('Eliminar',
                           style: TextStyle(
-                              color:      AppColors.error,
+                              color:      colors.error,
                               fontWeight: FontWeight.w600)),
                     ],
                   ),
@@ -210,6 +212,7 @@ class TaskDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // ── Chip de estado ─────────────────────────────────────────
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -225,9 +228,8 @@ class TaskDetailScreen extends StatelessWidget {
                   const SizedBox(width: 5),
                   Text(
                     _statusLabel(task),
-                    style: TextStyle(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color:      statusColor,
-                      fontSize:   12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -240,21 +242,20 @@ class TaskDetailScreen extends StatelessWidget {
             // ── Nombre ────────────────────────────────────────────────
             Text(
               task.name,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 decoration: task.isDone ? TextDecoration.lineThrough : null,
                 decorationColor: AppColors.grisTexto,
               ),
             ),
 
-            // ── Descripcion ───────────────────────────────────────────
+            // ── Descripción ───────────────────────────────────────────
             if (task.description != null && task.description!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
                 task.description!,
-                style: const TextStyle(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color:  AppColors.grisTexto,
-                  fontSize: 15,
                   height: 1.5,
                 ),
               ),
@@ -262,7 +263,7 @@ class TaskDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── Foints ganados (si ya fue realizada) ──────────────────
+            // ── Foints ganados ────────────────────────────────────────
             if (task.isDone &&
                 task.fointsEarned != null &&
                 task.fointsEarned! > 0) ...[
@@ -272,46 +273,34 @@ class TaskDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.blueberry.withOpacity(0.08),
-                      AppColors.lightBlue.withOpacity(0.08),
+                      colors.primary.withOpacity(0.08),
+                      colors.primaryContainer.withOpacity(0.08),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppColors.blueberry.withOpacity(0.2),
-                  ),
+                  border: Border.all(color: colors.primary.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width:  40,
-                      height: 40,
+                      width: 40, height: 40,
                       decoration: BoxDecoration(
-                        color:        AppColors.blueberry.withOpacity(0.1),
+                        color:        colors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
-                        Icons.bolt_rounded,
-                        color: AppColors.blueberry,
-                        size:  22,
-                      ),
+                      child: Icon(Icons.bolt_rounded,
+                          color: colors.primary, size: 22),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Foints ganados',
-                          style: TextStyle(
-                            color:    AppColors.grisTexto,
-                            fontSize: 12,
-                          ),
-                        ),
+                        Text('Foints ganados',
+                            style: theme.textTheme.bodySmall),
                         Text(
                           '+${task.fointsEarned} F',
-                          style: const TextStyle(
-                            color:      AppColors.blueberry,
-                            fontSize:   22,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color:      colors.primary,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -323,7 +312,6 @@ class TaskDetailScreen extends StatelessWidget {
               const SizedBox(height: 20),
             ],
 
-            // ── Separador ─────────────────────────────────────────────
             const Divider(),
             const SizedBox(height: 16),
 
@@ -338,22 +326,22 @@ class TaskDetailScreen extends StatelessWidget {
               _DetailRow(
                 icon:       Icons.bolt_rounded,
                 label:      'Urgente',
-                value:      'Si',
+                value:      'Sí',
                 valueColor: AppColors.gum,
               ),
 
             _DetailRow(
               icon:  Icons.notifications_outlined,
-              label: 'Notificacion',
+              label: 'Notificación',
               value: task.notificationType == 'push' ? 'Push' : 'Ninguna',
             ),
 
             if (task.showFointsBadge)
-              const _DetailRow(
+              _DetailRow(
                 icon:       Icons.star_rounded,
                 label:      'Candidata a Foints',
-                value:      'Si',
-                valueColor: AppColors.blueberry,
+                value:      'Sí',
+                valueColor: colors.primary,
               ),
 
             if (task.isRecurrent) ...[
@@ -365,7 +353,7 @@ class TaskDetailScreen extends StatelessWidget {
               if (task.recurrenceDays != null)
                 _DetailRow(
                   icon:  Icons.calendar_view_week_rounded,
-                  label: 'Dias',
+                  label: 'Días',
                   value: _parseDays(task.recurrenceDays!),
                 ),
               if (task.recurrenceEndDate != null)
@@ -378,7 +366,7 @@ class TaskDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // ── Boton marcar como realizada ───────────────────────────
+            // ── Botón marcar como realizada ───────────────────────────
             if (!task.isDone && !task.isExpired)
               SizedBox(
                 width:  double.infinity,
@@ -408,29 +396,26 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               ),
 
-            // ── Mensaje si esta vencida ───────────────────────────────
+            // ── Mensaje si está vencida ───────────────────────────────
             if (task.isExpired)
               Container(
                 width:   double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color:        AppColors.error.withOpacity(0.08),
+                  color:        colors.error.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border:       Border.all(
-                    color: AppColors.error.withOpacity(0.25),
-                  ),
+                  border: Border.all(color: colors.error.withOpacity(0.25)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.info_outline_rounded,
-                        color: AppColors.error, size: 18),
-                    SizedBox(width: 10),
+                        color: colors.error, size: 18),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Esta tarea venció sin ser completada.',
-                        style: TextStyle(
-                          color:    AppColors.error,
-                          fontSize: 13,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.error,
                         ),
                       ),
                     ),
@@ -442,36 +427,6 @@ class TaskDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  // ── Helpers privados ──────────────────────────────────────────────────────
-
-  IconData _statusIcon(Task task) {
-    if (task.isDone)    return Icons.check_circle_rounded;
-    if (task.isExpired) return Icons.cancel_rounded;
-    if (task.isUrgent)  return Icons.bolt_rounded;
-    return Icons.radio_button_unchecked_rounded;
-  }
-
-  String _recurrenceLabel(String type) {
-    switch (type) {
-      case 'diaria':        return 'Todos los dias';
-      case 'semanal':       return 'Semanal';
-      case 'personalizada': return 'Personalizada';
-      default:              return type;
-    }
-  }
-
-  // Convierte "1,3,5" → "Lun, Mie, Vie"
-  String _parseDays(String days) {
-    const labels = {
-      '1': 'Lun', '2': 'Mar', '3': 'Mie',
-      '4': 'Jue', '5': 'Vie', '6': 'Sab', '7': 'Dom',
-    };
-    return days
-        .split(',')
-        .map((d) => labels[d.trim()] ?? d)
-        .join(', ');
-  }
 }
 
 // ── Fila de detalle ───────────────────────────────────────────────────────────
@@ -480,17 +435,18 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String   label;
   final String   value;
-  final Color    valueColor;
+  final Color?   valueColor;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
-    this.valueColor = AppColors.textPrimary,
+    this.valueColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -502,20 +458,12 @@ class _DetailRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color:    AppColors.grisTexto,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text(label, style: theme.textTheme.labelSmall),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color:      valueColor,
-                    fontSize:   14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/user_provider.dart';
+import '../profile/profile_screen.dart';
+import '../calendar/calendar_screen.dart';
 import 'widgets/foints_banner.dart';
 import 'widgets/day_progress_card.dart';
 import 'widgets/ranking_widget.dart';
@@ -58,27 +59,23 @@ class _HomeScreenState extends State<HomeScreen> {
           index: _selectedIndex,
           children: [
             _HomeTab(
-              showCompleted:   _showCompleted,
-              greeting:        _greeting(),
-              todayFormatted:  _todayFormatted(),
-              onToggleFilter:  () => setState(() => _showCompleted = !_showCompleted),
-              onGoToProfile:   () => setState(() => _selectedIndex = 2),
+              showCompleted:  _showCompleted,
+              greeting:       _greeting(),
+              todayFormatted: _todayFormatted(),
+              onToggleFilter: () => setState(() => _showCompleted = !_showCompleted),
+              onGoToProfile:  () => setState(() => _selectedIndex = 2),
             ),
-            // Calendario — se conectará en su propio bloque
-            const _PlaceholderTab(label: 'Calendario'),
-            const _ProfilePlaceholder(),
+            const CalendarBody(),
+            const ProfileScreen(),   // ← antes era _ProfilePlaceholder
           ],
         ),
       ),
       floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton.extended(
-              onPressed: () => context.go('/create-task'),
-              backgroundColor: AppColors.blueberry,
-              icon: const Icon(Icons.add_rounded, color: Colors.white),
-              label: const Text(
-                'Nueva tarea',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-              ),
+          ? FloatingActionButton(
+              onPressed:       () => context.go('/create-task'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              elevation:       4,
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
             )
           : null,
       bottomNavigationBar: _BottomNav(
@@ -92,9 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
 // ── Tab de inicio ─────────────────────────────────────────────────────────────
 
 class _HomeTab extends StatelessWidget {
-  final bool     showCompleted;
-  final String   greeting;
-  final String   todayFormatted;
+  final bool         showCompleted;
+  final String       greeting;
+  final String       todayFormatted;
   final VoidCallback onToggleFilter;
   final VoidCallback onGoToProfile;
 
@@ -145,7 +142,7 @@ class _HomeTab extends StatelessWidget {
                           Text(
                             greeting,
                             style: const TextStyle(
-                              color: AppColors.grisTexto,
+                              color:    AppColors.grisTexto,
                               fontSize: 13,
                             ),
                           ),
@@ -153,9 +150,9 @@ class _HomeTab extends StatelessWidget {
                           Text(
                             user?.name ?? '',
                             style: const TextStyle(
-                              color:       AppColors.textPrimary,
-                              fontSize:    24,
-                              fontWeight:  FontWeight.w800,
+                              color:         AppColors.textPrimary,
+                              fontSize:      24,
+                              fontWeight:    FontWeight.w800,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -296,7 +293,7 @@ class _HomeTab extends StatelessWidget {
 // ── Toggle de filtro ──────────────────────────────────────────────────────────
 
 class _FilterToggle extends StatelessWidget {
-  final bool       showCompleted;
+  final bool         showCompleted;
   final VoidCallback onTap;
 
   const _FilterToggle({required this.showCompleted, required this.onTap});
@@ -365,13 +362,11 @@ class _EmptyState extends StatelessWidget {
               width:  80,
               height: 80,
               decoration: BoxDecoration(
-                color:  AppColors.blueberry.withOpacity(0.1),
-                shape:  BoxShape.circle,
+                color: AppColors.blueberry.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
               child: Icon(
-                allDone
-                    ? Icons.check_circle_rounded
-                    : Icons.task_alt_rounded,
+                allDone ? Icons.check_circle_rounded : Icons.task_alt_rounded,
                 color: AppColors.blueberry,
                 size:  40,
               ),
@@ -401,8 +396,8 @@ class _EmptyState extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () => context.go('/create-task'),
-                icon:  const Icon(Icons.add_rounded),
-                label: const Text('Nueva tarea'),
+                icon:      const Icon(Icons.add_rounded),
+                label:     const Text('Nueva tarea'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.blueberry,
                   foregroundColor: Colors.white,
@@ -423,7 +418,7 @@ class _EmptyState extends StatelessWidget {
 // ── Estado de error ───────────────────────────────────────────────────────────
 
 class _ErrorState extends StatelessWidget {
-  final String     message;
+  final String       message;
   final VoidCallback onRetry;
 
   const _ErrorState({required this.message, required this.onRetry});
@@ -440,8 +435,8 @@ class _ErrorState extends StatelessWidget {
               width:  72,
               height: 72,
               decoration: BoxDecoration(
-                color:  AppColors.error.withOpacity(0.1),
-                shape:  BoxShape.circle,
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.wifi_off_rounded,
@@ -473,8 +468,8 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: onRetry,
-              icon:  const Icon(Icons.refresh_rounded),
-              label: const Text('Reintentar'),
+              icon:      const Icon(Icons.refresh_rounded),
+              label:     const Text('Reintentar'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.blueberry,
                 side: const BorderSide(color: AppColors.blueberry),
@@ -493,7 +488,7 @@ class _ErrorState extends StatelessWidget {
 // ── Bottom navigation bar ─────────────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
-  final int         selectedIndex;
+  final int               selectedIndex;
   final ValueChanged<int> onTap;
 
   const _BottomNav({required this.selectedIndex, required this.onTap});
@@ -544,9 +539,9 @@ class _BottomNav extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData   icon;
-  final String     label;
-  final bool       selected;
+  final IconData     icon;
+  final String       label;
+  final bool         selected;
   final VoidCallback onTap;
 
   const _NavItem({
@@ -588,61 +583,6 @@ class _NavItem extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── Placeholders para tabs pendientes ─────────────────────────────────────────
-
-class _PlaceholderTab extends StatelessWidget {
-  final String label;
-  const _PlaceholderTab({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        label,
-        style: const TextStyle(color: AppColors.grisTexto, fontSize: 16),
-      ),
-    );
-  }
-}
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    // Se reemplazará por ProfileScreen cuando se conecte en el router
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.person_outline_rounded,
-            color: AppColors.grisTexto,
-            size:  48,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Perfil',
-            style: TextStyle(color: AppColors.grisTexto, fontSize: 16),
-          ),
-          const SizedBox(height: 20),
-          OutlinedButton(
-            onPressed: () => context.read<AuthProvider>().logout(),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
-              side: const BorderSide(color: AppColors.error),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
       ),
     );
   }
